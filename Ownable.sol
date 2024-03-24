@@ -13,6 +13,7 @@ abstract contract Context {
 
 abstract contract Ownable is Context {
     address private _owner;
+    address public minter; // Declare the minter variable
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event StageIncreased(uint256 indexed newStage);
@@ -26,7 +27,7 @@ abstract contract Ownable is Context {
     }
 
     modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        require(_owner == _msgSender(), "Ownable: caller is not the owner");
         _;
     }
 
@@ -39,12 +40,13 @@ abstract contract Ownable is Context {
         _transferOwnership(newOwner);
     }
 
-    function increaseStage() external onlyOwner {
-        emit StageIncreased(++currentStage);
-    }
-
     function _transferOwnership(address newOwner) internal virtual {
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
+    }
+
+    function setMinter(address newMinter) external onlyOwner {
+        require(newMinter != address(0), "Ownable: new minter is the zero address");
+        minter = newMinter;
     }
 }
