@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+import "./Ownable.sol"; // Import the Ownable contract
 
 interface IBEP20 {
     function totalSupply() external view returns (uint256);
@@ -13,19 +14,37 @@ interface IBEP20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-contract BEP20Token is IBEP20 {
+contract BEP20Token is IBEP20, Ownable {
     string public constant name = "BITSLAB";
     string public constant symbol = "BLAB";
     uint8 public constant decimals = 18; // Adjust decimals as needed
 
-    uint256 private _totalSupply = 1_000_000_000 * (10 ** uint256(decimals)); // 1 billion tokens
+    uint256 public constant TOTAL_SUPPLY = 1000000000 * 10**18; // Total supply: 1 billion tokens
+    uint256 public constant PUBLIC_PRESALES_ALLOCATION = 200000000 * 10**18; // 20% of total supply
+    uint256 public constant PRIVATE_SALE_ALLOCATION = 125000000 * 10**18; // 12.5% of total supply
+    uint256 public constant LIQUIDITY_ALLOCATION = 75000000 * 10**18; // 7.5% of total supply
+    uint256 public constant AIRDROP_REWARDS_ALLOCATION = 50000000 * 10**18; // 5% of total supply
+    uint256 public constant STAKING_POOL_ALLOCATION = 165000000 * 10**18; // 16.5% of total supply
+    uint256 public constant ADVISORY_ALLOCATION = 30000000 * 10**18; // 3% of total supply
+    uint256 public constant TEAM_ALLOCATION = 80000000 * 10**18; // 8% of total supply
+    uint256 public constant ECOSYSTEM_ALLOCATION = 90000000 * 10**18; // 9% of total supply
+    uint256 public constant EXCHANGE_RESERVES_ALLOCATION = 140000000 * 10**18; // 14% of total supply
+    uint256 public constant DEV_MARKETING_ALLOCATION = 45000000 * 10**18; // 4.5% of total supply
+
+    uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
     constructor() {
-        _balances[msg.sender] = _totalSupply;
-        emit Transfer(address(0), msg.sender, _totalSupply);
+        _totalSupply = TOTAL_SUPPLY;
+
+        // Distribute initial token allocations
+        _balances[msg.sender] = TOTAL_SUPPLY;
+        minter = msg.sender;
+        //_balances[address(this)] += PRIVATE_SALE_ALLOCATION; // Example: Assign to private sale allocation
+        emit Transfer(address(0), msg.sender, TOTAL_SUPPLY);
     }
+
 
     function totalSupply() external view override returns (uint256) {
         return _totalSupply;
@@ -85,6 +104,26 @@ contract BEP20Token is IBEP20 {
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
+    }
+
+    function mint(address account, uint256 amount) public onlyMinter returns (bool) {
+        require(account != address(0), "BEP20: mint to the zero address");
+
+        _totalSupply += amount;
+        _balances[account] += amount;
+        emit Transfer(address(0), account, amount);
+
+        return true;
+    }
+
+    modifier onlyMinter() {
+        require(msg.sender == minter, "BEP20: caller is not the minter");
+        _;
+    }
+
+    function setMinter(address newMinter) public onlyOwner override {
+    require(newMinter != address(0), "BEP20: new minter is the zero address");
+    minter = newMinter;
     }
 }
 
