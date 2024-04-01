@@ -1,3 +1,5 @@
+//Contract Address: "0x0b5c0017B8ca9300E51710Dc1160879d9fD77587"
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "./Ownable.sol"; // Import the Ownable contract
@@ -126,4 +128,3 @@ contract BEP20Token is IBEP20, Ownable {
     minter = newMinter;
     }
 }
-
